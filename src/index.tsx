@@ -1,4 +1,4 @@
-import * as React from 'react';
+import * as React from "react";
 
 const codes = {
   RETURN: 13,
@@ -42,7 +42,7 @@ export function RadioGroup<V>({
   autoFocus = false,
   ...props
 }: RadioGroupProps<V>) {
-  const setChecked = React.useCallback(v => {
+  const setChecked = React.useCallback((v) => {
     if (props.onChange) {
       props.onChange(v);
     }
@@ -50,7 +50,7 @@ export function RadioGroup<V>({
 
   const otherRadioValues = React.Children.map<any, any>(
     children,
-    child => child.props.value
+    (child) => child.props.value
   );
   const ctx = React.useMemo(
     () => ({
@@ -81,10 +81,12 @@ export const Radio = React.forwardRef<HTMLDivElement | null, RadioProps<any>>(
 
     const ctx = React.useContext(RadioGroupContext);
     const { otherRadioValues, value, setChecked, autoFocus } = ctx;
-    const index = otherRadioValues.findIndex(i => i == props.value);
+    const index = otherRadioValues.findIndex((i) => i == props.value);
     const count = otherRadioValues.length - 1;
+    const isCurrentRadioSelected = value === props.value;
+
     React.useEffect(() => {
-      if (autoFocus && value === props.value) {
+      if (autoFocus && isCurrentRadioSelected) {
         if (maybeOuterRef && maybeOuterRef.current !== null) {
           maybeOuterRef.current.focus();
         } else if (ref.current !== null) {
@@ -93,12 +95,13 @@ export const Radio = React.forwardRef<HTMLDivElement | null, RadioProps<any>>(
       }
     }, [value, props.value, maybeOuterRef, autoFocus]);
 
+    const isFirstRadioOption = index === 0;
     const handleKeyDown = React.useCallback(
-      event => {
+      (event) => {
         event.persist();
         var flag = false;
         function setPrevious() {
-          if (index === 0) {
+          if (isFirstRadioOption) {
             setChecked(otherRadioValues[count]);
           } else {
             setChecked(otherRadioValues[index - 1]);
@@ -145,32 +148,38 @@ export const Radio = React.forwardRef<HTMLDivElement | null, RadioProps<any>>(
       setChecked(props.value);
     }, [props.value]);
 
-    const handleBlur = React.useCallback(e => {
+    const handleBlur = React.useCallback((e) => {
       if (props.onBlur) {
         props.onBlur(e);
       }
       setFocus(false);
     }, []);
 
-    const handleFocus = React.useCallback(e => {
+    const handleFocus = React.useCallback((e) => {
       if (props.onFocus) {
         props.onFocus(e);
       }
       setFocus(true);
     }, []);
+
+    const noValueSelected = !value;
+    const tabIndex =
+      isCurrentRadioSelected || (noValueSelected && isFirstRadioOption)
+        ? 0
+        : -1;
     return (
       <div
         {...props}
         role="radio"
-        tabIndex={value === props.value ? 0 : -1}
-        aria-checked={value === props.value}
+        tabIndex={tabIndex}
+        aria-checked={isCurrentRadioSelected}
         onBlur={handleBlur}
         onFocus={handleFocus}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
         data-palmerhq-radio
         data-palmerhq-radio-focus={focus}
-        ref={el => {
+        ref={(el) => {
           if (maybeOuterRef) {
             maybeOuterRef.current = el;
           }
